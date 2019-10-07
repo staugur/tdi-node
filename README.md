@@ -7,12 +7,16 @@
 
 另外PHP版本的仓库地址是：https://github.com/staugur/tdi-php
 
-## 开发运行：
+## 开发运行
 
 1. 安装依赖
 
-`yarn install` or `npm install`
+`yarn` or `npm install`
 
-2. 启动服务
+2. 启动Web服务
 
-`npm start`
+`yarn start` or `npm start`
+
+3. 启动队列处理进程
+
+`yarn start:worker` or `npm start:worker`
