@@ -6,16 +6,24 @@ const {
     execSync
 } = require("child_process");
 const {
-    existsSync
+    existsSync,
+    readdirSync,
+    statSync,
+    mkdirSync,
+    unlinkSync,
+    rmdirSync
 } = require("fs");
+const {
+    extname,
+    join
+} = require("path");
 
 const CFG = `${__dirname}/../config.json`;
-const ENV = (existsSync(CFG) && require(CFG) || {});
+const CONFIG = (existsSync(CFG) && require(CFG) || {});
 
 function get_cfg(key, dv) {
     //dv即默认值
-    let v = PKG[key] || process.env[`crawlhuabantdi_${key}`] || ENV[key] || dv || '';
-    console.log(`get_cfg for ${key}, ${v}`);
+    let v = PKG[key] || CONFIG[key] || process.env[`crawlhuabantdi_${key}`] || dv || '';
     return v;
 }
 
@@ -25,6 +33,47 @@ function isObject(obj) {
 
 function isArray(arr) {
     return Object.prototype.toString.call(arr) === '[object Array]';
+}
+
+function diskRate(path, ret = "percent") {
+    let cmd = `df --output=size,used,avail,pcent ${path}`;
+    if (typeof path === "string" && existsSync(path)) {
+        let result = execSync(cmd).toString().trim().split("\n");
+        if (result.length === 2) {
+            let data = result[1].split(/\s+/);
+            if (data.length === 4) {
+                let percent = Number(data[3].replace(/%$/gi, ""));
+                return ret === "percent" ? percent : {
+                    total: Number(data[0]),
+                    used: Number(data[1]),
+                    available: Number(data[2]),
+                    percent: percent
+                }
+            }
+        }
+    }
+}
+
+function makedir(path) {
+    if (typeof path === "string" && !existsSync(path)) {
+        mkdirSync(path);
+    }
+}
+
+function rmtree(path) {
+    let files = [];
+    if (existsSync(path)) {
+        files = readdirSync(path);
+        files.forEach(function (file, index) {
+            let curPath = join(path, file);
+            if (statSync(curPath).isDirectory()) { // recurse
+                rmtree(curPath);
+            } else { // delete file
+                unlinkSync(curPath);
+            }
+        });
+        rmdirSync(path);
+    }
 }
 
 function checkSignature(signature, timestamp, nonce) {
@@ -49,24 +98,60 @@ function signature_required(req, res, next) {
     }
 }
 
-function make_zipfile(zip_filename, zip_path, exclude = []) {
+function make_zipfile(zip_filename, zip_path, exclude = [], cwd = __dirname) {
     if (!isArray(exclude)) {
         return false;
     }
-    let x = exclude.map((suffix) => {
+    let xs = exclude.map((suffix) => {
         if (suffix.startsWith(".") === false) {
             suffix = "." + suffix;
         }
         return " -x *" + suffix;
     }).join("");
-    execSync(`zip -r ${zip_filename} ${zip_path} ${x}`, {
-        cwd: "PATH_TO_FOLDER_YOU_WANT_ZIPPED_HERE"
+    return execSync(`zip -r ${zip_filename} ${zip_path} ${xs}`, {
+        cwd: cwd
     });
 }
+
+function getDirSize(dir_path, exclude = []) {
+    if (!isArray(exclude)) {
+        return false;
+    }
+    let size = 0;
+    for (let fd of readdirSync(dir_path)) {
+        let fi = statSync(join(dir_path, fd));
+        if (fi.isFile() && !exclude.includes(extname(fd))) {
+            size += fi.size;
+        }
+    }
+    return size;
+}
+
+function formatSize(fileSizeInBytes) {
+    var i = -1;
+    var byteUnits = ['KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+    do {
+        fileSizeInBytes = fileSizeInBytes / 1024;
+        i++;
+    } while (fileSizeInBytes > 1024);
+
+    return Math.max(fileSizeInBytes, 0.1).toFixed(2) + byteUnits[i];
+}
+
+var log = require("loglevel");
+log.setDefaultLevel("info");
+log.setLevel(get_cfg("loglevel"));
 
 module.exports = {
     get_cfg,
     isArray,
     isObject,
-    signature_required
+    signature_required,
+    make_zipfile,
+    getDirSize,
+    formatSize,
+    diskRate,
+    makedir,
+    rmtree,
+    log
 };

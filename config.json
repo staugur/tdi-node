@@ -4,5 +4,6 @@
     "status": "ready",
     "token": "",
     "redis_url": "",
-    "alarmemail": ""
+    "alarmemail": "",
+    "loglevel": "info"
 }

@@ -4,7 +4,6 @@
  */
 
 //依赖模块
-const express = require('express');
 const {
     totalmem,
     freemem,
@@ -14,19 +13,21 @@ const {
     existsSync,
     mkdirSync
 } = require('fs');
-const diskusage = require('diskusage-ng');
-const Redis = require("redis");
-const Queue = require("bee-queue");
 const {
     get_cfg,
     isObject,
-    signature_required
+    signature_required,
+    diskRate,
+    log
 } = require("./util.js");
+const Redis = require("redis");
+const Queue = require("bee-queue");
+const express = require('express');
 
 //配置信息
 const VERSION = get_cfg('version');
 const STATUS = get_cfg('status', 'enabled');
-const ALARMEMAIL = get_cfg('alertmail');
+const ALARMEMAIL = get_cfg('alarmemail');
 const HOST = get_cfg('host', '127.0.0.1');
 const PORT = Number(get_cfg('port', 3000));
 const REDIS_URL = get_cfg('redis_url');
@@ -46,7 +47,9 @@ if (!existsSync(DOWNLOAD_DIR)) {
 
 var app = express();
 
-app.use(express.json()); // for parsing application/json
+app.use(express.json({
+    limit: '10mb'
+})); // for parsing application/json
 
 app.get('/ping', signature_required, (req, res) => {
     let resp = {
@@ -55,21 +58,17 @@ app.get('/ping', signature_required, (req, res) => {
         status: STATUS,
         memRate: parseFloat((100 * (totalmem() - freemem()) / totalmem()).toFixed(2)),
         loadFive: parseFloat(loadavg()[1].toFixed(2)),
-        diskRate: 0,
+        diskRate: diskRate(DOWNLOAD_DIR),
         timestamp: Math.round(Date.now() / 1000),
         rqcount: 0,
         rqfailed: 0,
         email: ALARMEMAIL,
         lang: 'Node' + process.versions.node
     }
-    rc.scard(`bq:${QUEUE_NAME}:waiting`, (err, data) => {
-        resp["rqcount"] = data;
-    });
-    rc.scard(`bq:${QUEUE_NAME}:failed`, (err, data) => {
-        resp["rqfailed"] = data;
-    });
-    diskusage(DOWNLOAD_DIR, (err, usage) => {
-        resp["diskRate"] = parseFloat((usage.used / (usage.used + usage.available) * 100).toFixed(2));
+    rc.multi().scard(`bq:${QUEUE_NAME}:waiting`).scard(`bq:${QUEUE_NAME}:failed`).exec((err, results) => {
+        let [rqcount, rqfailed] = results;
+        resp["rqcount"] = rqcount;
+        resp["rqfailed"] = rqfailed;
         res.json(resp);
     });
 });
@@ -92,15 +91,14 @@ app.post('/download', signature_required, (req, res) => {
             site: data.site,
             uifnKey: data.uifnKey
         }).expireat(uifn, etime + (7 * 24 * 3600)).exec((err, results) => {
-            console.log('post download, result: ',results);
             if (!err) {
                 resp["code"] = 0;
                 let job = queue.createJob({
-                    download: DOWNLOAD_DIR,
+                    download_dir: DOWNLOAD_DIR,
                     uifn: uifn,
-                    diskLimit: Number(data.DISKLIMIT || 0)
+                    disk_limit: Number(data.DISKLIMIT || 80)
                 });
-                job.timeout(Number(data.TIMEOUT || 0)).save().then((job) => {
+                job.timeout(Number(data.TIMEOUT || 7200) * 1000).retries(2).save().then((job) => {
                     // job enqueued, job.id populated
                     resp["jobId"] = job.id;
                     res.json(resp);
@@ -119,5 +117,5 @@ app.use((req, res, next) => {
 
 app.listen(PORT, HOST, () => {
     let time = new Date().toTimeString().split(" ")[0];
-    console.log(`Server running on http://${HOST}:${PORT} at ${time}`);
+    log.info(`Server running on http://${HOST}:${PORT} at ${time}`);
 });

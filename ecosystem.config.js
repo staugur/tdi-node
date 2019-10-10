@@ -1,16 +1,4 @@
 //生产环境pm2配置文件
-/*
-const {
-    existsSync
-} = require("fs");
-const cfg = "./config.json";
-const env = (existsSync(cfg) && require(cfg) || {});
-var config = {};
-for (let key in env) {
-    config[`crawlhuabantdi_${key}`] = env[key];
-}
-config["NODE_ENV"] = "production";
-*/
 
 module.exports = {
     apps: [{
@@ -18,7 +6,7 @@ module.exports = {
         name: 'tdi-node',
         cwd: './src',
         script: 'server.js', //启动执行的初始脚本
-        instances: '1',
+        instances: 'max',
         exec_mode: 'cluster',
 
         //advanced
@@ -35,5 +23,15 @@ module.exports = {
         //control
         listen_timeout: 3000,
         kill_timeout: 5000
+    }, {
+        name: 'tdi-queue',
+        cwd: './src',
+        script: 'worker.js',
+        instances: 1,
+        exec_mode: 'cluster',
+        watch: ['worker.js'], //false
+        log_file: 'logs/queue.log',
+        log_date_format: 'YYYY-MM-DD HH:mm',
+        merge_logs: true
     }]
 };
