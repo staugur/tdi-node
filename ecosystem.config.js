@@ -16,9 +16,6 @@ module.exports = {
         env: {
             NODE_ENV: "production"
         },
-        log_file: 'logs/sys.log',
-        log_date_format: 'YYYY-MM-DD HH:mm',
-        merge_logs: true,
 
         //control
         listen_timeout: 3000,

@@ -40,7 +40,7 @@ function diskRate(path, ret = "percent") {
     if (typeof path === "string" && existsSync(path)) {
         let result = execSync(cmd).toString().trim().split("\n");
         if (result.length === 2) {
-            let data = result[1].split(/\s+/);
+            let data = result[1].trim().split(/\s+/);
             if (data.length === 4) {
                 let percent = Number(data[3].replace(/%$/gi, ""));
                 return ret === "percent" ? percent : {

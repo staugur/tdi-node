@@ -11,7 +11,17 @@
 
 #### 安装依赖
 
-    `yarn` or `npm install`
+- 安装程序依赖的npm包：
+
+    - 开发环境： `yarn` or `npm install`
+
+    - 正式环境： `yarn --production` or `npm install --production`
+
+- 安装程序所需系统命令的包： `zip`
+
+    - CentOS/Fedora/RHEL: `yum install zip`
+
+    - Ubuntu: `apt-get install zip`
 
 #### 开发环境运行
 

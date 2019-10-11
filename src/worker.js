@@ -124,6 +124,8 @@ queue.on('ready', () => {
                             return done(null, body);
                         }
                     });
+                } else {
+                    log.info("DownloadBoard, without make zip, disk usage is to high");
                 }
             }
             //开始批量下载

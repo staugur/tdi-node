@@ -116,7 +116,7 @@ class PromisseHandle {
                     log.debug(this.fileInfo.path)
                     fs.writeFile(this.fileInfo.path, body, 'binary', this.writeFileCallback)
                 } else {
-                    fs.writeFile(path.join(dest, "README.txt"), `Disk usage is too high, so unsaved ${this.fileInfo.path}`, {
+                    fs.writeFile(path.join(dest, "README.txt"), `\r\nDisk usage is too high, so unsaved ${this.fileInfo.path}`, {
                         flag: "a+"
                     }, this.writeFileCallback)
                 }
@@ -164,6 +164,7 @@ function ImageDownloader({
                     diskLimit
                 })
                 Allpromises.push(new Promise(handdle.RejectOrResolve))
+                log.debug(`${filename} joined promise, ${uri}`)
             }
 
             return Promise.all(Allpromises)

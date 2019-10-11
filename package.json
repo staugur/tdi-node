@@ -5,7 +5,7 @@
     "main": "server.js",
     "scripts": {
         "start": "NODE_ENV=development nodemon ./src/server.js",
-        "start:worker": "node ./src/worker.js",
+        "start:worker": "NODE_ENV=development nodemon ./src/worker.js",
         "prod": "pm2 ls",
         "prod:start": "pm2 start ecosystem.config.js",
         "prod:stop": "pm2 stop ecosystem.config.js",
