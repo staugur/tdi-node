@@ -1,21 +1,23 @@
 //生产环境pm2配置文件
 
+const ENV = {
+    NODE_ENV: "production"
+};
+
 module.exports = {
     apps: [{
         //general
         name: 'tdi-node',
         cwd: './src',
         script: 'server.js', //启动执行的初始脚本
-        instances: 'max',
+        instances: 1, //'max'
         exec_mode: 'cluster',
 
         //advanced
-        watch: ['server.js', 'util.js'], //监听文件变化
+        watch: false, //监听文件变化
         ignore_watch: ['node_modules', 'logs'], //忽略监听的文件夹
         max_memory_restart: '1024M', //内存达到多少会自动restart
-        env: {
-            NODE_ENV: "production"
-        },
+        env: ENV,
 
         //control
         listen_timeout: 3000,
@@ -26,9 +28,14 @@ module.exports = {
         script: 'worker.js',
         instances: 1,
         exec_mode: 'cluster',
-        watch: ['worker.js'], //false
-        log_file: 'logs/queue.log',
-        log_date_format: 'YYYY-MM-DD HH:mm',
-        merge_logs: true
+        watch: false,
+        env: ENV
+    }, {
+        name: "tdi-clean",
+        script: "cleanDownload.js",
+        cwd: "./src",
+        log_file: "logs/cli.log",
+        time: true,
+        restart_delay: 6000 //这里是重点，这是自动重启的时间, 单位是毫秒
     }]
 };

@@ -97,8 +97,7 @@ queue.on('ready', () => {
                 if (diskRate(download_dir, null).available > getDirSize(board_id, exclude)) {
                     log.info("DownloadBoard, start to make zip");
                     //基本判断有足够空间执行压缩
-                    let mzrets = make_zipfile(uifn, board_id, exclude, download_dir);
-                    log.debug(mzrets);
+                    make_zipfile(uifn, board_id, exclude, download_dir);
                     let zipfilepath = join(download_dir, uifn);
                     log.info(`DownloadBoard make_archive over, path is ${zipfilepath}`);
                     //检测压缩文件大小
@@ -117,7 +116,8 @@ queue.on('ready', () => {
                             uifnKey: uifnKey,
                             size: size,
                             dtime: dtime
-                        }
+                        },
+                        timeout: 5000
                     }, (error, response, body) => {
                         if (!error && response.statusCode == 200) {
                             //调用done设置成功回调
@@ -125,7 +125,7 @@ queue.on('ready', () => {
                         }
                     });
                 } else {
-                    log.info("DownloadBoard, without make zip, disk usage is to high");
+                    done("DownloadBoard, without make zip, disk usage is to high");
                 }
             }
             //开始批量下载
@@ -148,6 +148,7 @@ queue.on('ready', () => {
                 }).then(_handler).catch((error, response, body) => {
                     README.add(error);
                     _handler("DownloadBoard failed!");
+                    done(error);
                 });
             } else {
                 //即便不允许下载，后续压缩、回调等操作仍需要进行
@@ -162,5 +163,5 @@ queue.on('succeeded', (job, result) => {
 });
 
 queue.on('failed', (job, err) => {
-    log.warn(`Job ${job.id} failed with error ${err.message}`);
+    log.warn(`Job ${job.id} failed with error: ${err.message}`);
 });

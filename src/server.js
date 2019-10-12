@@ -22,11 +22,11 @@ const {
 } = require("./util.js");
 const Redis = require("redis");
 const Queue = require("bee-queue");
-const express = require('express');
+const express = require("express");
 
 //配置信息
 const VERSION = get_cfg('version');
-const STATUS = get_cfg('status', 'enabled');
+const STATUS = get_cfg('status', 'ready');
 const ALARMEMAIL = get_cfg('alarmemail');
 const HOST = get_cfg('host', '127.0.0.1');
 const PORT = Number(get_cfg('port', 3000));
@@ -65,7 +65,7 @@ app.get('/ping', signature_required, (req, res) => {
         email: ALARMEMAIL,
         lang: 'Node' + process.versions.node
     }
-    rc.multi().scard(`bq:${QUEUE_NAME}:waiting`).scard(`bq:${QUEUE_NAME}:failed`).exec((err, results) => {
+    rc.multi().llen(`bq:${QUEUE_NAME}:waiting`).scard(`bq:${QUEUE_NAME}:failed`).exec((err, results) => {
         let [rqcount, rqfailed] = results;
         resp["rqcount"] = rqcount;
         resp["rqfailed"] = rqfailed;
@@ -98,7 +98,7 @@ app.post('/download', signature_required, (req, res) => {
                     uifn: uifn,
                     disk_limit: Number(data.DISKLIMIT || 80)
                 });
-                job.timeout(Number(data.TIMEOUT || 7200) * 1000).retries(2).save().then((job) => {
+                job.timeout(Number(data.TIMEOUT || 7200) * 1000).retries(0).save().then((job) => {
                     // job enqueued, job.id populated
                     resp["jobId"] = job.id;
                     res.json(resp);

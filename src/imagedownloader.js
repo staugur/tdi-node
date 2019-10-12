@@ -164,7 +164,6 @@ function ImageDownloader({
                     diskLimit
                 })
                 Allpromises.push(new Promise(handdle.RejectOrResolve))
-                log.debug(`${filename} joined promise, ${uri}`)
             }
 
             return Promise.all(Allpromises)

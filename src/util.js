@@ -1,4 +1,3 @@
-const PKG = require(`${__dirname}/../package.json`);
 const {
     createHash
 } = require('crypto');
@@ -11,21 +10,14 @@ const {
     statSync,
     mkdirSync,
     unlinkSync,
-    rmdirSync
+    rmdirSync,
+    appendFile
 } = require("fs");
 const {
     extname,
     join
 } = require("path");
-
-const CFG = `${__dirname}/../config.json`;
-const CONFIG = (existsSync(CFG) && require(CFG) || {});
-
-function get_cfg(key, dv) {
-    //dv即默认值
-    let v = PKG[key] || CONFIG[key] || process.env[`crawlhuabantdi_${key}`] || dv || '';
-    return v;
-}
+const get_cfg = require("./cfg.js");
 
 function isObject(obj) {
     return Object.prototype.toString.call(obj) === '[object Object]';
@@ -98,7 +90,7 @@ function signature_required(req, res, next) {
     }
 }
 
-function make_zipfile(zip_filename, zip_path, exclude = [], cwd = __dirname) {
+function make_zipfile(zip_filename, zip_path, exclude = [], cwd = null) {
     if (!isArray(exclude)) {
         return false;
     }
@@ -108,9 +100,11 @@ function make_zipfile(zip_filename, zip_path, exclude = [], cwd = __dirname) {
         }
         return " -x *" + suffix;
     }).join("");
-    return execSync(`zip -r ${zip_filename} ${zip_path} ${xs}`, {
-        cwd: cwd
-    });
+    let options = {
+        cwd: cwd || process.cwd()
+    };
+    execSync(`zip -r ${zip_filename} ${zip_path} ${xs}`, options);
+    return join(options.cwd, zip_filename);
 }
 
 function getDirSize(dir_path, exclude = []) {
@@ -138,9 +132,22 @@ function formatSize(fileSizeInBytes) {
     return Math.max(fileSizeInBytes, 0.1).toFixed(2) + byteUnits[i];
 }
 
-var log = require("loglevel");
-log.setDefaultLevel("info");
-log.setLevel(get_cfg("loglevel"));
+var tracer = require("tracer");
+var log = tracer.console({
+    format: "[ {{title}} ] {{timestamp}} {{file}}:{{line}} {{message}}",
+    dateformat: "yyyy-MM-dd HH:mm:ss",
+    preprocess: function (data) {
+        data.title = data.title.toUpperCase();
+    },
+    transport: function (data) {
+        let logdir = join(__dirname, "logs");
+        makedir(logdir);
+        appendFile(join(logdir, "sys.log"), data.rawoutput + '\n', (err) => {
+            if (err) throw err;
+        });
+    }
+});
+tracer.setLevel(get_cfg("loglevel", "INFO"));
 
 module.exports = {
     get_cfg,
