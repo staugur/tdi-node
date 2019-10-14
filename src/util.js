@@ -36,9 +36,9 @@ function diskRate(path, ret = "percent") {
             if (data.length === 4) {
                 let percent = Number(data[3].replace(/%$/gi, ""));
                 return ret === "percent" ? percent : {
-                    total: Number(data[0]),
-                    used: Number(data[1]),
-                    available: Number(data[2]),
+                    total: Number(data[0]) * 1024,
+                    used: Number(data[1]) * 1024,
+                    available: Number(data[2]) * 1024,
                     percent: percent
                 }
             }
@@ -135,7 +135,6 @@ function formatSize(fileSizeInBytes) {
 var tracer = require("tracer");
 var log = tracer.console({
     format: "[ {{title}} ] {{timestamp}} {{file}}:{{line}} {{message}}",
-    dateformat: "yyyy-MM-dd HH:mm:ss",
     preprocess: function (data) {
         data.title = data.title.toUpperCase();
     },

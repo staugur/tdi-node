@@ -15,7 +15,6 @@ module.exports = {
 
         //advanced
         watch: false, //监听文件变化
-        ignore_watch: ['node_modules', 'logs'], //忽略监听的文件夹
         max_memory_restart: '1024M', //内存达到多少会自动restart
         env: ENV,
 
@@ -36,6 +35,7 @@ module.exports = {
         cwd: "./src",
         log_file: "logs/cli.log",
         time: true,
-        restart_delay: 6000 //这里是重点，这是自动重启的时间, 单位是毫秒
+        merge: true,
+        restart_delay: 60000 //这里是重点，这是自动重启的时间, 单位是毫秒
     }]
 };

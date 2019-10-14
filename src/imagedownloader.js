@@ -1,7 +1,6 @@
 const request = require('request')
 const path = require('path')
 const fs = require('fs')
-const mime = require('mime-types')
 const {
     existsSync
 } = require("fs");
@@ -15,7 +14,6 @@ class PromisseHandle {
         uri,
         dest,
         filename,
-        fileExtension,
         headers,
         diskLimit
     }) {
@@ -28,7 +26,6 @@ class PromisseHandle {
             uri,
             dest,
             filename,
-            fileExtension,
             headers
         }
 
@@ -62,53 +59,20 @@ class PromisseHandle {
         } = this.promise
         const {
             dest,
-            filename,
-            fileExtension
+            filename
         } = this.downloadParams
 
         if (error) {
-            reject(error, response, body)
+            fs.writeFile(path.join(dest, "README.txt"), error, {
+                flag: "a+"
+            }, this.writeFileCallback)
+            //reject(error, response, body)
             return
         }
 
         if (body) {
-            const {
-                headers,
-                statusCode,
-                request
-            } = response
-            const {
-                href
-            } = request.uri
 
-            const removeParamsReg = /\?(?=[^?]*$).+|\/|\./g
-            const clearExtReg = /\.(?=[^.]*$).+|\//g
-            const clearUrlToFileNameReg = /\/(?=[^/]*$).+/g
-            const findFileExtReg = /\.(?=[^.\/\-]*$).+/g
-
-            const findExt = href.match(findFileExtReg)
-            const findFileNameInUrl = href.match(clearUrlToFileNameReg)
-            const filenameFinal =
-                typeof filename === 'string' ?
-                filename :
-                findFileNameInUrl && findFileNameInUrl[0] ?
-                findFileNameInUrl[0].replace(clearExtReg, '') :
-                Date.now()
-
-            const finalExt =
-                typeof fileExtension === 'string' ?
-                fileExtension :
-                findExt && findExt[0] ?
-                findExt[0].replace(removeParamsReg, '') :
-                mime.extension(headers['content-type'])
-
-            const finalFilename = typeof filename === 'string' && filename.indexOf(".") > -1 ?
-                filenameFinal :
-                `${filenameFinal}.${finalExt}`
-
-            const finalPath = path.join(dest, finalFilename)
-
-            this.fileInfo.path = finalPath
+            this.fileInfo.path = path.join(dest, filename)
             this.fileInfo.size = `${body.length / 1000}kb`
 
             if (!existsSync(this.fileInfo.path)) {
@@ -152,18 +116,18 @@ function ImageDownloader({
                 const {
                     uri,
                     filename,
-                    fileExtension,
                     headers
                 } = imgs[i]
-                const handdle = new PromisseHandle({
-                    uri,
-                    filename,
-                    fileExtension,
-                    dest,
-                    headers,
-                    diskLimit
-                })
-                Allpromises.push(new Promise(handdle.RejectOrResolve))
+                if (!existsSync(path.join(dest, filename))) {
+                    const handdle = new PromisseHandle({
+                        uri,
+                        filename,
+                        dest,
+                        headers,
+                        diskLimit
+                    })
+                    Allpromises.push(new Promise(handdle.RejectOrResolve))
+                }
             }
 
             return Promise.all(Allpromises)
