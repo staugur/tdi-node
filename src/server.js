@@ -17,8 +17,7 @@ const {
     get_cfg,
     isObject,
     signature_required,
-    diskRate,
-    log
+    diskRate
 } = require("./util.js");
 const Redis = require("redis");
 const Queue = require("bee-queue");
@@ -30,9 +29,12 @@ const STATUS = get_cfg('status', 'ready');
 const ALARMEMAIL = get_cfg('alarmemail');
 const HOST = get_cfg('host', '127.0.0.1');
 const PORT = Number(get_cfg('port', 3000));
-const REDIS_URL = get_cfg('redis_url');
+const REDIS_URL = get_cfg('redis');
+const TOKEN = get_cfg('token');
 const QUEUE_NAME = "tdi";
 
+if (!REDIS_URL) throw new Error("Invalid configuration: redis");
+if (!TOKEN) throw new Error("Invalid configuration: token");
 var rc = Redis.createClient(REDIS_URL);
 var queue = new Queue(QUEUE_NAME, {
     redis: rc,
@@ -117,5 +119,5 @@ app.use((req, res, next) => {
 
 app.listen(PORT, HOST, () => {
     let time = new Date().toTimeString().split(" ")[0];
-    log.info(`Server running on http://${HOST}:${PORT} at ${time}`);
+    console.log(`Server running on http://${HOST}:${PORT} at ${time}`);
 });

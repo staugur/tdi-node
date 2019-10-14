@@ -3,7 +3,8 @@
 const {
     readdirSync,
     statSync,
-    unlinkSync
+    unlinkSync,
+    existsSync
 } = require("fs");
 const {
     extname,
@@ -13,7 +14,7 @@ const request = require("request");
 const Redis = require("redis");
 const get_cfg = require("./cfg.js");
 
-const REDIS_URL = get_cfg('redis_url');
+const REDIS_URL = get_cfg('redis');
 
 function get_10ts() {
     return Math.round(new Date() / 1000);
@@ -25,6 +26,9 @@ function execute_cleanDownload(hours = 12) {
         hours = 12;
     }
     const DOWNLOADDIR = join(__dirname, "downloads");
+    if (!existsSync(DOWNLOADDIR)) {
+        return;
+    }
     const ds = readdirSync(DOWNLOADDIR);
     for (let uifn of ds) {
         let file_path = join(DOWNLOADDIR, uifn);

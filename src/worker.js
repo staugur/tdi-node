@@ -21,7 +21,7 @@ const Redis = require("redis");
 const Queue = require("bee-queue");
 const request = require("request");
 
-const REDIS_URL = get_cfg("redis_url");
+const REDIS_URL = get_cfg("redis");
 const QUEUE_NAME = "tdi";
 
 var rc = Redis.createClient(REDIS_URL);
