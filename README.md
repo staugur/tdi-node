@@ -1,13 +1,16 @@
-# tdi-node
-花瓣网、堆糖网下载油猴脚本的远程下载服务(Tdi for node.js).
+# Tdi-node
+花瓣网、堆糖网下载油猴脚本的远程下载服务(Tdi for Node.js).
 
 此程序相当于`CrawlHuaban`(中心端)的成员，用户选择远端下载后会由中心端选择一个成员提供给用户，减少中心端压力。
 
-另外Python版本的仓库地址是：https://github.com/staugur/tdi
+Python版本的仓库地址是：https://github.com/staugur/tdi
 
-另外PHP版本的仓库地址是：https://github.com/staugur/tdi-php
+PHP版本的仓库地址是：https://github.com/staugur/tdi-php
 
-## 使用说明
+
+## 部署
+
+要求：Node>8，Redis
 
 #### 安装依赖
 
@@ -60,6 +63,14 @@
 - 删除
 
     `yarn run prod:delete` or `npm run prod:delete`
+
+
+## 更多文档：
+
+[点击查看文档](https://docs.saintic.com/tdi-node/ "点击查看部署及使用文档")，关于普通部署、使用手册、注意事项等问题。
+
+若上述地址异常，备用地址是：[https://saintic-docs.readthedocs.io/tdi-node/](https://saintic-docs.readthedocs.io/tdi-node/)
+
 
 ## Nginx配置示例
 
