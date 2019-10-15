@@ -17,13 +17,16 @@ module.exports = {
         watch: false, //监听文件变化
         max_memory_restart: '1024M', //内存达到多少会自动restart
         env: ENV,
-        log_file: "logs/pm2.log",
+        out_file: null,
+        error_file: "logs/error.log",
         time: true,
-        merge: true,
+        merge_logs: true,
 
         //control
         listen_timeout: 3000,
-        kill_timeout: 5000
+        kill_timeout: 5000,
+        restart_delay: 3000,
+        max_restarts: 5
     }, {
         name: 'tdi-queue',
         cwd: './src',
@@ -32,9 +35,9 @@ module.exports = {
         exec_mode: 'cluster',
         watch: false,
         env: ENV,
-        error_file: "logs/pm2.log",
+        error_file: "logs/error.log",
         time: true,
-        merge: true
+        merge_logs: true
     }, {
         name: "tdi-clean",
         script: "cleanDownload.js",
