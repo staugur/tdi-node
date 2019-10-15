@@ -10,7 +10,7 @@ PHP版本的仓库地址是：https://github.com/staugur/tdi-php
 
 ## 部署
 
-要求：Node>8，Redis
+要求：Node8+，Redis2+
 
 #### 安装依赖
 

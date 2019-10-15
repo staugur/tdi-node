@@ -17,6 +17,9 @@ module.exports = {
         watch: false, //监听文件变化
         max_memory_restart: '1024M', //内存达到多少会自动restart
         env: ENV,
+        log_file: "logs/pm2.log",
+        time: true,
+        merge: true,
 
         //control
         listen_timeout: 3000,
@@ -28,7 +31,10 @@ module.exports = {
         instances: 1,
         exec_mode: 'cluster',
         watch: false,
-        env: ENV
+        env: ENV,
+        error_file: "logs/pm2.log",
+        time: true,
+        merge: true
     }, {
         name: "tdi-clean",
         script: "cleanDownload.js",
