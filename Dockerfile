@@ -2,10 +2,10 @@ FROM node:10
 
 MAINTAINER staugur <staugur@saintic.com>
 
-COPY . /tdi-node
+COPY . /Tdi-node
 
-RUN yarn --production --registry=https://registry.npm.taobao.org
+RUN cd /Tdi-node && yarn --production --registry=https://registry.npm.taobao.org && apt-get update && apt-get install zip
 
-WORKDIR /tdi-node
+WORKDIR /Tdi-node
 
 CMD [ "yarn", "prod:run" ]
