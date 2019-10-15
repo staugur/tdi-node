@@ -121,3 +121,11 @@ app.listen(PORT, HOST, () => {
     let time = new Date().toTimeString().split(" ")[0];
     console.log(`Server running on http://${HOST}:${PORT} at ${time}`);
 });
+
+function handle(signal) {
+    console.log(`Received ${signal} signal, will exit!`);
+    rc.quit();
+}
+
+process.on('SIGINT', handle);
+process.on('SIGTERM', handle);
