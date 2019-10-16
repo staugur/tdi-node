@@ -38,7 +38,7 @@ let apps = [{
     watch: false,
     env: ENV,
     error_file: "logs/error.log",
-    time: true,
+    time: false,
     merge_logs: true
 }, {
     name: "tdi-clean",

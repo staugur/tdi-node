@@ -24,7 +24,7 @@ PHP版本的仓库地址是：https://github.com/staugur/tdi-php
 
     - CentOS/Fedora/RHEL: `yum install zip`
 
-    - Ubuntu: `apt-get install zip`
+    - Ubuntu: `apt-get update && apt-get install zip`
 
 #### 开发环境运行
 
@@ -38,31 +38,31 @@ PHP版本的仓库地址是：https://github.com/staugur/tdi-php
 
 #### 正式环境运行
 
-使用pm2管理Web进程和队列进程，另外还包含一个进程，会每60s清理过期下载文件。
+使用pm2管理Web进程和队列进程，另外还包含一个定时任务，会每60s清理过期下载文件。
 
 - 查看进程状态
 
-    `yarn run prod` or `npm run prod`
+    `yarn prod` or `npm run prod`
 
 - 启动
 
-    `yarn run prod:start` or `npm run prod:start`
+    `yarn prod:start` or `npm run prod:start`
 
 - 停止
 
-    `yarn run prod:stop` or `npm run prod:stop`
+    `yarn prod:stop` or `npm run prod:stop`
 
 - 重载
 
-    `yarn run prod:reload` or `npm run prod:reload`
+    `yarn prod:reload` or `npm run prod:reload`
 
 - 重启
 
-    `yarn run prod:restart` or `npm run prod:restart`
+    `yarn prod:restart` or `npm run prod:restart`
 
 - 删除
 
-    `yarn run prod:delete` or `npm run prod:delete`
+    `yarn prod:delete` or `npm run prod:delete`
 
 
 ## 更多文档：
@@ -79,8 +79,6 @@ server {
     listen 80;
     server_name 域名;
     charset utf-8;
-    #防止在IE9、Chrome和Safari中的MIME类型混淆攻击
-    add_header X-Content-Type-Options nosniff;
     client_max_body_size 10M;
     client_body_buffer_size 128k;
     #此路径是为了下载实际图片压缩包，直接走nginx

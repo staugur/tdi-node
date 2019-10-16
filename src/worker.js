@@ -87,7 +87,7 @@ queue.on('ready', () => {
                 //将提示信息写入提示文件中
                 let README_L = [...README];
                 if (README_L.length > 0) {
-                    writeFileSync(join(download_dir, board_id, "README.txt"), README_L.join("\r\n"), {
+                    writeFileSync(join(download_dir, board_id, "README.txt"), `Error board_id: ${board_id}\r\n` + README_L.join("\r\n"), {
                         flag: "a+"
                     });
                 }

@@ -2,10 +2,15 @@ FROM node:10
 
 MAINTAINER staugur <staugur@saintic.com>
 
+ENV REGISTRY https://registry.npm.taobao.org
+
 COPY . /Tdi-node
 
-RUN cd /Tdi-node && yarn --production --registry=https://registry.npm.taobao.org && apt-get update && apt-get install zip
+RUN cd /Tdi-node && yarn --production --registry=$REGISTRY \
+    && apt-get update \
+    && apt-get install zip \
+    && ln -sf /Tdi-node/node_modules/.bin/pm2-runtime /usr/bin/pm2-runtime
 
 WORKDIR /Tdi-node
 
-CMD [ "yarn", "prod:run" ]
+CMD [ "pm2-runtime", "ecosystem.config.js" ]
