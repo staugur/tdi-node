@@ -20,12 +20,6 @@ PHP版本的仓库地址是：https://github.com/staugur/tdi-php
 
     - 正式环境： `yarn --production` or `npm install --production`
 
-- 安装程序所需系统命令的包： `zip`
-
-    - CentOS/Fedora/RHEL: `yum install zip`
-
-    - Ubuntu: `apt-get update && apt-get install zip`
-
 #### 开发环境运行
 
 1. 启动Web服务

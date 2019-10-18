@@ -22,7 +22,7 @@ function get_10ts() {
 
 function execute_cleanDownload(hours = 12) {
     hours = parseInt(hours);
-    if (typeof hours !== "number" || isNaN(hours)) {
+    if (typeof hours !== "number" || isNaN(hours) || hours === 0) {
         hours = 12;
     }
     const DOWNLOADDIR = join(__dirname, "downloads");
@@ -33,7 +33,7 @@ function execute_cleanDownload(hours = 12) {
     for (let uifn of ds) {
         let file_path = join(DOWNLOADDIR, uifn);
         let file_stat = statSync(file_path);
-        if (file_stat.isFile() && extname(uifn) === ".zip") {
+        if (file_stat.isFile() && [".zip", ".tar"].includes(extname(uifn))) {
             let [aid, mst] = uifn.split("_");
             if (aid === "hb") {
                 //中心端接收到请求时的时间戳
@@ -62,6 +62,9 @@ function execute_cleanDownload(hours = 12) {
                                 timeout: 3000
                             }, (error, response, body) => {
                                 console.log(`Update expired status for ${uifn}, resp is ${body}`);
+                                rc.del(uifn, () => {
+                                    rc.quit();
+                                });
                             });
                         }
                     });

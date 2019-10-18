@@ -1,6 +1,6 @@
 const {
     get_cfg,
-    make_zipfile,
+    make_tarfile,
     makedir,
     rmtree,
     diskRate,
@@ -11,7 +11,8 @@ const {
 } = require("./util.js");
 const imageDownloader = require("./imagedownloader.js");
 const {
-    join
+    join,
+    extname
 } = require("path");
 const {
     writeFileSync,
@@ -92,13 +93,12 @@ queue.on('ready', () => {
                     });
                 }
                 //定义压缩排除
-                let exclude = [".zip", ".lock"];
+                let exclude = [".zip", ".lock", ".tar"];
                 //判断是否有足够的空间可以执行压缩命令
                 if (diskRate(download_dir, null).available > getDirSize(board_id, exclude)) {
                     log.info("DownloadBoard, start to make zip");
                     //基本判断有足够空间执行压缩
-                    make_zipfile(uifn, board_id, exclude, download_dir);
-                    let zipfilepath = join(download_dir, uifn);
+                    let zipfilepath = make_tarfile(uifn, board_id, exclude, download_dir);
                     log.info(`DownloadBoard make_archive over, path is ${zipfilepath}`);
                     //检测压缩文件大小
                     let size = formatSize(statSync(zipfilepath).size);

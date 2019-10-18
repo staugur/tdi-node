@@ -1,6 +1,6 @@
 {
     "name": "tdi-node",
-    "version": "0.1.1",
+    "version": "0.2.0",
     "description": "花瓣网、堆糖网下载油猴脚本的远程下载服务",
     "main": "src/server.js",
     "scripts": {
@@ -13,8 +13,7 @@
         "prod:stop": "pm2 stop ecosystem.config.js",
         "prod:reload": "pm2 reload ecosystem.config.js",
         "prod:restart": "pm2 restart ecosystem.config.js",
-        "prod:delete": "pm2 delete ecosystem.config.js",
-        "prod:run": "pm2-runtime ecosystem.config.js"
+        "prod:delete": "pm2 delete ecosystem.config.js"
     },
     "repository": {
         "type": "git",
@@ -35,6 +34,7 @@
         "pm2": "^3.5.1",
         "redis": "^2.8.0",
         "request": "^2.87.0",
+        "tar": "^5.0.5",
         "tracer": "^1.0.1"
     },
     "devDependencies": {

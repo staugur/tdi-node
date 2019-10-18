@@ -15,8 +15,10 @@ const {
 } = require("fs");
 const {
     extname,
-    join
+    join,
+    resolve
 } = require("path");
+const tar = require('tar');
 const get_cfg = require("./cfg.js");
 
 function isObject(obj) {
@@ -90,21 +92,43 @@ function signature_required(req, res, next) {
     }
 }
 
-function make_zipfile(zip_filename, zip_path, exclude = [], cwd = null) {
-    if (!isArray(exclude)) {
+function make_tarfile_builtin(tar_filename, tar_path, exclude = [], cwd = null) {
+    if (!isArray(exclude) || extname(tar_filename) !== ".tar" || !existsSync(tar_path)) {
         return false;
     }
     let xs = exclude.map((suffix) => {
         if (suffix.startsWith(".") === false) {
             suffix = "." + suffix;
         }
-        return " -x *" + suffix;
+        return "--exclude=*" + suffix;
     }).join("");
     let options = {
         cwd: cwd || process.cwd()
     };
-    execSync(`zip -r ${zip_filename} ${zip_path} ${xs}`, options);
-    return join(options.cwd, zip_filename);
+    execSync(`tar -cf ${tar_filename} ${xs} ${tar_path}`, options);
+    readdirSync(tar_path).forEach((name) => {
+        unlinkSync(join(tar_path, name));
+    });
+    return resolve(tar_filename);
+}
+
+function make_tarfile(tar_filename, tar_path, exclude = []) {
+    if (!isArray(exclude) || extname(tar_filename) !== ".tar" || !existsSync(tar_path)) {
+        return false;
+    }
+    let entries = readdirSync(tar_path).map((name) => {
+        return join(tar_path, name);
+    }).filter((name) => {
+        return !exclude.includes(extname(name));
+    });
+    tar.c({
+        file: tar_filename,
+        sync: true
+    }, entries)
+    for (let f of entries) {
+        unlinkSync(f);
+    }
+    return resolve(tar_filename);
 }
 
 function getDirSize(dir_path, exclude = []) {
@@ -153,7 +177,7 @@ module.exports = {
     isArray,
     isObject,
     signature_required,
-    make_zipfile,
+    make_tarfile,
     getDirSize,
     formatSize,
     diskRate,
