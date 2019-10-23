@@ -5,9 +5,7 @@
 
 //依赖模块
 const {
-    totalmem,
-    freemem,
-    loadavg,
+    loadavg
 } = require('os');
 const {
     existsSync,
@@ -17,6 +15,7 @@ const {
     get_cfg,
     isObject,
     signature_required,
+    memRate,
     diskRate
 } = require("./util.js");
 const Redis = require("redis");
@@ -58,7 +57,7 @@ app.get('/ping', signature_required, (req, res) => {
         code: 0,
         version: VERSION,
         status: STATUS,
-        memRate: parseFloat((100 * (totalmem() - freemem()) / totalmem()).toFixed(2)),
+        memRate: memRate(),
         loadFive: parseFloat(loadavg()[1].toFixed(2)),
         diskRate: diskRate(DOWNLOAD_DIR),
         timestamp: Math.round(Date.now() / 1000),

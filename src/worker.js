@@ -11,8 +11,7 @@ const {
 } = require("./util.js");
 const imageDownloader = require("./imagedownloader.js");
 const {
-    join,
-    extname
+    join
 } = require("path");
 const {
     writeFileSync,

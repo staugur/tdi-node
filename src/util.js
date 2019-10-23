@@ -11,7 +11,8 @@ const {
     mkdirSync,
     unlinkSync,
     rmdirSync,
-    appendFile
+    appendFile,
+    readFileSync
 } = require("fs");
 const {
     extname,
@@ -48,6 +49,26 @@ function diskRate(path, ret = "percent") {
     }
 }
 
+function memRate() {
+    var mem = {};
+    var data = readFileSync('/proc/meminfo').toString();
+    data.split(/\n/g).forEach(function (line) {
+        line = line.split(':');
+
+        // Ignore invalid lines, if any
+        if (line.length < 2) {
+            return;
+        }
+
+        // Remove parseInt call to make all values strings
+        mem[line[0]] = parseInt(line[1].trim(), 10);
+    });
+
+    let percent = (mem['MemTotal'] - mem['MemFree'] - mem['Buffers'] - mem['Cached']) / mem["MemTotal"] * 100;
+
+    return parseFloat(percent.toFixed(2));
+}
+
 function makedir(path) {
     if (typeof path === "string" && !existsSync(path)) {
         mkdirSync(path);
@@ -70,6 +91,22 @@ function rmtree(path) {
     }
 }
 
+function checkTimestamp(req_timestamp) {
+    if (typeof req_timestamp === 'string' && req_timestamp.length === 10) {
+        let rt = parseInt(req_timestamp)
+        if (typeof rt !== "number" || isNaN(rt)) {
+            return;
+        } else {
+            let nt = parseInt(Date.now() / 1000);
+            if ((rt <= nt || rt - 10 <= nt) && (rt + 300 >= nt)) {
+                return true;
+            }
+        }
+    } else {
+        return;
+    }
+}
+
 function checkSignature(signature, timestamp, nonce) {
     let TOKEN = get_cfg('token');
     let args = [TOKEN, timestamp, nonce];
@@ -82,12 +119,19 @@ function signature_required(req, res, next) {
     let signature = req.query.signature || '';
     let timestamp = req.query.timestamp || '';
     let nonce = req.query.nonce || '';
-    if (checkSignature(signature, timestamp, nonce) === true) {
-        next();
+    if (checkTimestamp(timestamp) === true) {
+        if (checkSignature(signature, timestamp, nonce) === true) {
+            next();
+        } else {
+            res.json({
+                code: 1,
+                msg: "Invalid signature"
+            });
+        }
     } else {
         res.json({
             code: 1,
-            msg: "Invalid signature"
+            msg: "Invalid timestamp"
         });
     }
 }
@@ -181,6 +225,7 @@ module.exports = {
     getDirSize,
     formatSize,
     diskRate,
+    memRate,
     makedir,
     rmtree,
     log

@@ -21,7 +21,7 @@ let apps = [{
     max_memory_restart: '1024M', //内存达到多少会自动restart
     env: ENV,
     error_file: "logs/error.log",
-    time: true,
+    time: false,
     merge_logs: true,
 
     //control

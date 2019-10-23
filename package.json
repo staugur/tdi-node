@@ -1,6 +1,6 @@
 {
     "name": "tdi-node",
-    "version": "0.2.0",
+    "version": "0.2.1",
     "description": "花瓣网、堆糖网下载油猴脚本的远程下载服务",
     "main": "src/server.js",
     "scripts": {
