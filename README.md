@@ -7,6 +7,7 @@ Python版本的仓库地址是：https://github.com/staugur/tdi
 
 PHP版本的仓库地址是：https://github.com/staugur/tdi-php
 
+Golang版本的仓库地址是：https://github.com/staugur/tdi-go
 
 ## 部署
 
