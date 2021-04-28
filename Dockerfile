@@ -1,16 +1,27 @@
-FROM node:12
+# build image
+FROM node:12-alpine as build
 
 LABEL maintainer=me@tcw.im
 
-ENV REGISTRY https://registry.npm.taobao.org
+WORKDIR /app
 
-COPY . /Tdi-node
+COPY . ./
 
-RUN cd /Tdi-node && yarn --production --registry=$REGISTRY \
-    && apt-get update \
-    && apt-get install zip \
-    && ln -sf /Tdi-node/node_modules/.bin/pm2-runtime /usr/bin/pm2-runtime
+ARG REGISTRY
+
+RUN yarn --production --registry=$REGISTRY
+
+# run image
+FROM node:12-alpine as runtime
 
 WORKDIR /Tdi-node
 
-CMD [ "pm2-runtime", "ecosystem.config.js" ]
+COPY --from=build /app/ ./
+
+ENV crawlhuabantdi_host=0.0.0.0
+
+RUN ln -sf /Tdi-node/node_modules/.bin/pm2-runtime /usr/bin/pm2-runtime
+
+EXPOSE 3000
+
+ENTRYPOINT [ "pm2-runtime", "ecosystem.config.js" ]
