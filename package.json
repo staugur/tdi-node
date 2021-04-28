@@ -1,6 +1,8 @@
 {
     "name": "tdi-node",
-    "version": "0.2.1",
+    "author": "staugur",
+    "license": "MIT",
+    "version": "0.2.2",
     "description": "花瓣网、堆糖网下载油猴脚本的远程下载服务",
     "main": "src/server.js",
     "scripts": {
@@ -22,8 +24,6 @@
     "keywords": [
         "tdi"
     ],
-    "author": "staugur",
-    "license": "MIT",
     "bugs": {
         "url": "https://github.com/staugur/tdi-node/issues"
     },
@@ -31,16 +31,16 @@
     "dependencies": {
         "bee-queue": "^1.2.2",
         "express": "^4.17.1",
-        "pm2": "^3.5.1",
-        "redis": "^2.8.0",
+        "pm2": "^4.5.6",
+        "redis": "^3.1.2",
         "request": "^2.87.0",
-        "tar": "^5.0.5",
+        "tar": "^6.1.0",
         "tracer": "^1.0.1"
     },
     "devDependencies": {
-        "nodemon": "^1.19.2"
+        "nodemon": "^2.0.7"
     },
     "engines": {
-        "node": ">=8"
+        "node": ">=10"
     }
 }

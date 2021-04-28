@@ -1,6 +1,6 @@
-FROM node:10
+FROM node:12
 
-MAINTAINER staugur <staugur@saintic.com>
+LABEL maintainer=me@tcw.im
 
 ENV REGISTRY https://registry.npm.taobao.org
 

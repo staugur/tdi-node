@@ -8,31 +8,26 @@ const {
     formatSize,
     isArray,
     log
-} = require("./util.js");
-const imageDownloader = require("./imagedownloader.js");
-const {
-    join
-} = require("path");
-const {
-    writeFileSync,
-    statSync
-} = require("fs");
-const Redis = require("redis");
-const Queue = require("bee-queue");
-const request = require("request");
+} = require('./util.js')
+const imageDownloader = require('./imagedownloader.js')
+const { join } = require('path')
+const { writeFileSync, statSync } = require('fs')
+const Redis = require('redis')
+const Queue = require('bee-queue')
+const request = require('request')
 
-const REDIS_URL = get_cfg("redis");
-const QUEUE_NAME = "tdi";
+const REDIS_URL = get_cfg('redis')
+const QUEUE_NAME = 'tdi'
 
-var rc = Redis.createClient(REDIS_URL);
+var rc = Redis.createClient(REDIS_URL)
 var queue = new Queue(QUEUE_NAME, {
     redis: rc,
     isWorker: true,
     removeOnSuccess: true
-});
+})
 
 queue.on('ready', () => {
-    log.info('Start processing jobs...');
+    log.info('Start processing jobs...')
 
     queue.process((job, done) => {
         /*
@@ -45,9 +40,9 @@ queue.on('ready', () => {
         @param MAX_BOARD_NUMBER: int: 允许下载的画板数量
         */
         //任务处理函数
-        log.info(`processing job: ${job.id}, ${JSON.stringify(job.data)}`);
-        let uifn = job.data.uifn;
-        let download_dir = job.data.download_dir;
+        log.info(`processing job: ${job.id}, ${JSON.stringify(job.data)}`)
+        let uifn = job.data.uifn
+        let download_dir = job.data.download_dir
         //从redis读取数据
         rc.hgetall(uifn, (err, data) => {
             let {
@@ -57,110 +52,136 @@ queue.on('ready', () => {
                 board_id,
                 site,
                 uifnKey
-            } = data;
-            board_pins = JSON.parse(board_pins);
-            MAX_BOARD_NUMBER = parseInt(MAX_BOARD_NUMBER);
-            site = parseInt(site);
+            } = data
+            board_pins = JSON.parse(board_pins)
+            MAX_BOARD_NUMBER = parseInt(MAX_BOARD_NUMBER)
+            site = parseInt(site)
             if (board_pins.length > MAX_BOARD_NUMBER) {
-                board_pins.splice(MAX_BOARD_NUMBER);
+                board_pins.splice(MAX_BOARD_NUMBER)
             }
             //定义说明文件
-            let README = new Set();
-            let ALLOWDOWN = true;
+            let README = new Set()
+            let ALLOWDOWN = true
             //创建下载目录并切换，创建临时画板目录
-            makedir(download_dir);
-            process.chdir(download_dir);
-            makedir(board_id);
+            makedir(download_dir)
+            process.chdir(download_dir)
+            makedir(board_id)
             if (diskRate(download_dir) > job.data.disk_limit) {
-                ALLOWDOWN = false;
-                README.add("Disk usage is to high");
+                ALLOWDOWN = false
+                README.add('Disk usage is to high')
             }
             //允许下载的后续处理函数
             function _handler(info) {
                 if (isArray(info) === true) {
-                    info = `successful ${info.length}`;
+                    info = `successful ${info.length}`
                 }
-                log.info('DownloadBoard to handler...', info);
+                log.info('DownloadBoard to handler...', info)
                 //计算总共下载用时，不包含压缩文件的过程
-                let dtime = (Date.now() - stime) / 1000;
-                dtime.toFixed(2);
+                let dtime = (Date.now() - stime) / 1000
+                dtime.toFixed(2)
                 //将提示信息写入提示文件中
-                let README_L = [...README];
+                let README_L = [...README]
                 if (README_L.length > 0) {
-                    writeFileSync(join(download_dir, board_id, "README.txt"), `Error board_id: ${board_id}\r\n` + README_L.join("\r\n"), {
-                        flag: "a+"
-                    });
+                    writeFileSync(
+                        join(download_dir, board_id, 'README.txt'),
+                        `Error board_id: ${board_id}\r\n` +
+                            README_L.join('\r\n'),
+                        {
+                            flag: 'a+'
+                        }
+                    )
                 }
                 //定义压缩排除
-                let exclude = [".zip", ".lock", ".tar"];
+                let exclude = ['.zip', '.lock', '.tar']
                 //判断是否有足够的空间可以执行压缩命令
-                if (diskRate(download_dir, null).available > getDirSize(board_id, exclude)) {
-                    log.info("DownloadBoard, start to make zip");
+                if (
+                    diskRate(download_dir, null).available >
+                    getDirSize(board_id, exclude)
+                ) {
+                    log.info('DownloadBoard, start to make zip')
                     //基本判断有足够空间执行压缩
-                    let zipfilepath = make_tarfile(uifn, board_id, exclude, download_dir);
-                    log.info(`DownloadBoard make_archive over, path is ${zipfilepath}`);
+                    let zipfilepath = make_tarfile(
+                        uifn,
+                        board_id,
+                        exclude,
+                        download_dir
+                    )
+                    log.info(
+                        `DownloadBoard make_archive over, path is ${zipfilepath}`
+                    )
                     //检测压缩文件大小
-                    let size = formatSize(statSync(zipfilepath).size);
+                    let size = formatSize(statSync(zipfilepath).size)
                     //删除临时画板目录
-                    rmtree(board_id);
+                    rmtree(board_id)
                     //回调
-                    request({
-                        uri: CALLBACK_URL + '?Action=FIRST_STATUS',
-                        method: "POST",
-                        headers: {
-                            "User-Agent": "Tdi-Node/v1"
+                    request(
+                        {
+                            uri: `${CALLBACK_URL}?Action=FIRST_STATUS`,
+                            method: 'POST',
+                            headers: {
+                                'User-Agent': 'Tdi-Node/v1'
+                            },
+                            form: {
+                                uifn: uifn,
+                                uifnKey: uifnKey,
+                                size: size,
+                                dtime: dtime
+                            },
+                            timeout: 5000
                         },
-                        form: {
-                            uifn: uifn,
-                            uifnKey: uifnKey,
-                            size: size,
-                            dtime: dtime
-                        },
-                        timeout: 5000
-                    }, (error, response, body) => {
-                        if (!error && response.statusCode == 200) {
-                            //调用done设置成功回调
-                            return done(null, body);
+                        (error, response, body) => {
+                            if (!error && response.statusCode == 200) {
+                                //调用done设置成功回调
+                                return done(null, body)
+                            }
                         }
-                    });
+                    )
                 } else {
-                    done("DownloadBoard, without make zip, disk usage is to high");
+                    done(
+                        'DownloadBoard, without make zip, disk usage is to high'
+                    )
                 }
             }
             //开始批量下载
-            let stime = Date.now();
+            let stime = Date.now()
             if (ALLOWDOWN === true) {
-                log.info('DownloadBoard starting...');
+                log.info('DownloadBoard starting...')
                 imageDownloader({
-                    imgs: board_pins.map((img) => {
+                    imgs: board_pins.map(img => {
                         return {
                             uri: img.imgUrl,
                             filename: img.imgName,
                             headers: {
-                                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36",
-                                "Referer": site === 1 ? `https://huaban.com/boards/${board_id}` : `https://www.duitang.com/album/?id=${board_id}`
+                                'User-Agent':
+                                    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36',
+                                Referer:
+                                    site === 1
+                                        ? `https://huaban.com/boards/${board_id}`
+                                        : `https://www.duitang.com/album/?id=${board_id}`
                             }
-                        };
+                        }
                     }),
                     dest: join(download_dir, board_id),
                     diskLimit: job.data.disk_limit
-                }).then(_handler).catch((error, response, body) => {
-                    README.add(error);
-                    _handler("DownloadBoard failed!");
-                    done(error);
-                });
+                })
+                    .then(_handler)
+                    .catch((error, response, body) => {
+                        README.add(error)
+                        _handler('DownloadBoard failed!')
+                        done(error)
+                    })
             } else {
                 //即便不允许下载，后续压缩、回调等操作仍需要进行
-                _handler("deny download...");
+                _handler('deny download...')
             }
-        });
-    });
-});
+        })
+    })
+})
 
 queue.on('succeeded', (job, result) => {
-    log.info(`Job ${job.id} succeeded with result: ${result}`);
-});
+    log.info(`Job ${job.id} succeeded with result: ${result}`)
+})
 
 queue.on('failed', (job, err) => {
-    log.warn(`Job ${job.id} failed with error: ${err.message}`);
-});
+    log.warn(`Job ${job.id} failed with error: ${err.message}`)
+})

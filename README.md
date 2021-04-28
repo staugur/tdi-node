@@ -11,7 +11,7 @@ Golang版本的仓库地址是：https://github.com/staugur/tdi-go
 
 ## 部署
 
-要求：Node8+，Redis2+
+要求：Node10+，Redis2.x（3.x，4.x）
 
 #### 安装依赖
 
