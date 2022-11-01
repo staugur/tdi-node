@@ -2,7 +2,7 @@
     "name": "tdi-node",
     "author": "staugur",
     "license": "MIT",
-    "version": "0.2.4",
+    "version": "0.2.5",
     "description": "花瓣网、堆糖网下载油猴脚本的远程下载服务",
     "main": "src/server.js",
     "scripts": {
